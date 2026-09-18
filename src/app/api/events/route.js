@@ -4,8 +4,10 @@ import { classifySource } from '@/lib/classification';
 
 export async function POST(request) {
   try {
+    const origin = request.headers.get('origin');
+
     if (!supabase) {
-      return NextResponse.json({ error: 'Supabase client not configured' }, { status: 500, headers: getCorsHeaders() });
+      return NextResponse.json({ error: 'Supabase client not configured' }, { status: 500, headers: getCorsHeaders(origin) });
     }
 
     const body = await request.json();
@@ -23,7 +25,7 @@ export async function POST(request) {
     } = body;
 
     if (!visitor_id || !session_id || !event_type) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400, headers: getCorsHeaders() });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400, headers: getCorsHeaders(origin) });
     }
 
     const classification = classifySource(referrer, utms);
@@ -100,28 +102,41 @@ export async function POST(request) {
 
     if (eventError) {
       console.error('Event insert error:', eventError);
-      return NextResponse.json({ error: 'Failed to record event' }, { status: 500 });
+      return NextResponse.json({ error: 'Failed to record event' }, { status: 500, headers: getCorsHeaders(origin) });
     }
 
-    return NextResponse.json({ success: true, classification }, { headers: getCorsHeaders() });
+    return NextResponse.json({ success: true, classification }, { headers: getCorsHeaders(origin) });
 
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: getCorsHeaders() });
+    // Since origin might not be defined if error happens early, fallback to null
+    const errorOrigin = request?.headers?.get('origin');
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: getCorsHeaders(errorOrigin) });
   }
 }
 
-function getCorsHeaders() {
+function getCorsHeaders(requestOrigin) {
+  // Define allowed origins
+  const allowedOrigins = [
+    'https://theshrutiverma.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:8080'
+  ];
+
+  // If the request has an origin and it's in our allowed list, use it. Otherwise, fallback to the production domain.
+  const origin = allowedOrigins.includes(requestOrigin) ? requestOrigin : 'https://theshrutiverma.vercel.app';
+
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   };
 }
 
 export async function OPTIONS(request) {
+  const origin = request.headers.get('origin');
   return new NextResponse(null, {
     status: 200,
-    headers: getCorsHeaders(),
+    headers: getCorsHeaders(origin),
   });
 }
