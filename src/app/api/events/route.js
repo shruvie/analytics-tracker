@@ -5,7 +5,7 @@ import { classifySource } from '@/lib/classification';
 export async function POST(request) {
   try {
     if (!supabase) {
-      return NextResponse.json({ error: 'Supabase client not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'Supabase client not configured' }, { status: 500, headers: getCorsHeaders() });
     }
 
     const body = await request.json();
@@ -23,7 +23,7 @@ export async function POST(request) {
     } = body;
 
     if (!visitor_id || !session_id || !event_type) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400, headers: getCorsHeaders() });
     }
 
     const classification = classifySource(referrer, utms);
@@ -103,10 +103,25 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Failed to record event' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, classification });
+    return NextResponse.json({ success: true, classification }, { headers: getCorsHeaders() });
 
   } catch (error) {
     console.error('API Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500, headers: getCorsHeaders() });
   }
+}
+
+function getCorsHeaders() {
+  return {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  };
+}
+
+export async function OPTIONS(request) {
+  return new NextResponse(null, {
+    status: 200,
+    headers: getCorsHeaders(),
+  });
 }
