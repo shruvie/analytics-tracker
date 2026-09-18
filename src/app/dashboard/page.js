@@ -71,7 +71,7 @@ export default async function DashboardPage() {
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-4">Setup Required</h2>
           <p className="text-slate-600 dark:text-slate-400 mb-6">
-            Please add your <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">NEXT_PUBLIC_SUPABASE_URL</code> and <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code> to your .env.local file and restart the server.
+            Please add your <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">SUPABASE_URL</code> and <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">SUPABASE_SERVICE_ROLE_KEY</code> to your .env.local file and restart the server.
           </p>
         </div>
       </div>
